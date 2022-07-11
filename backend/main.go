@@ -19,7 +19,6 @@ type ClientModel struct {
 	Train        TrainModel
 	TrainHistory []TrainModel
 }
-
 type InstructorModel struct {
 	ID        string
 	FirstName string
@@ -31,7 +30,6 @@ type InstructorModel struct {
 	Salary    float64
 	Paid      bool
 }
-
 type TrainModel struct {
 	ID        string
 	Name      string
@@ -39,7 +37,6 @@ type TrainModel struct {
 	CreatedBy InstructorModel
 	Exercises []ExerciseModel
 }
-
 type ExerciseModel struct {
 	ID                string
 	Title             string
@@ -49,12 +46,12 @@ type ExerciseModel struct {
 	RecommendedWeight int
 	MachineNumber     int
 }
-
 type PaymentModel struct {
 	ID    string
 	value string
 }
 
+// DATA
 var ClientData = []ClientModel{
 	{
 		ID:        "0",
@@ -88,12 +85,10 @@ var ClientData = []ClientModel{
 		Train: TrainData[1],
 	},
 }
-
 var InstructorData = []InstructorModel{
 	{"0", "João", "João Treinador Exemplo", "Exemplo", "00/00/0000", "00/00/0000", "000.000.000-00", 2500.90, false},
 	{"1", "Fulano", "Fulano Treinador Exemplo", "Exemplo", "00/00/0000", "00/00/0000", "000.000.000-00", 3500.90, false},
 }
-
 var TrainData = []TrainModel{
 	{
 		ID:        "0",
@@ -116,7 +111,6 @@ var TrainData = []TrainModel{
 		},
 	},
 }
-
 var ExerciseData = []ExerciseModel{
 	{"0", "Flexão no solo", 10.0, 10, 3, 0, 0},
 	{"1", "Cadeira Extensora", 5.0, 13, 3, 30, 8},
@@ -130,7 +124,9 @@ func main() {
 	router.DELETE("/client/delete/:id", deleteClient)
 
 	router.GET("/instructor/all", getAllInstructors)
-	router.GET("/instructor/:id", instructorById)
+	router.GET("/instructor/:id", getInstructorById)
+	router.POST("/instructor/new", postInstructor)
+	router.DELETE("/instructor/delete/:id", deleteInstructor)
 	//router.SetTrustedProxies([]string{"127.0.0.1"})
 	err := router.Run()
 	if err != nil {
@@ -149,7 +145,6 @@ func getClientByID(c *gin.Context) {
 		}
 	}
 }
-
 func newClient(c *gin.Context) {
 	var client ClientModel
 	if err := c.Bind(&client); err != nil {
@@ -159,7 +154,6 @@ func newClient(c *gin.Context) {
 	ClientData = append(ClientData, client)
 	c.IndentedJSON(http.StatusCreated, client)
 }
-
 func deleteClient(c *gin.Context) {
 	id := c.Param("id")
 
@@ -176,7 +170,7 @@ func deleteClient(c *gin.Context) {
 }
 
 func getAllInstructors(c *gin.Context) { c.IndentedJSON(http.StatusOK, InstructorData) }
-func instructorById(c *gin.Context) {
+func getInstructorById(c *gin.Context) {
 	id := c.Param("id")
 	var obj InstructorModel
 
@@ -186,9 +180,28 @@ func instructorById(c *gin.Context) {
 		}
 	}
 
-	if obj.ID == "" {
-		c.IndentedJSON(http.StatusNotFound, nil)
-	} else {
-		c.IndentedJSON(http.StatusFound, obj)
+	c.IndentedJSON(http.StatusFound, obj)
+}
+func postInstructor(c *gin.Context) {
+	var instructor InstructorModel
+	if err := c.Bind(&instructor); err != nil {
+		return
 	}
+
+	InstructorData = append(InstructorData, instructor)
+	c.IndentedJSON(http.StatusCreated, instructor)
+}
+func deleteInstructor(c *gin.Context) {
+	id := c.Param("id")
+
+	var newList []InstructorModel
+
+	for _, u := range InstructorData {
+		if u.ID != id {
+			newList = append(newList, u)
+		}
+	}
+	InstructorData = newList
+
+	c.IndentedJSON(http.StatusAccepted, InstructorData)
 }
